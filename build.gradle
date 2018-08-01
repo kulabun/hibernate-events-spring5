@@ -1,0 +1,76 @@
+buildscript {
+    ext {
+        springBootVersion = "2.0.4.RELEASE"
+        junit5PlatformVersion = "1.2.0"
+        junit5Version = "5.2.0"
+        h2Version = "1.4.197"
+        hibernateJpa21Version = "1.0.0.Final"
+        gradleStagingVersion = "0.11.0"
+    }
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:${gradleStagingVersion}"
+    }
+}
+
+apply plugin: "java"
+apply plugin: "maven"
+
+group = "org.labun"
+version = "1.0.0"
+description = "Hibernate events library"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+dependencies {
+    compile 'org.hibernate:hibernate-core:5.3.3.Final'
+    compileOnly "org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}"
+
+    testCompile "org.junit.jupiter:junit-jupiter-api:${junit5Version}"
+    testCompile "org.junit.platform:junit-platform-launcher:${junit5PlatformVersion}"
+    testCompile "org.junit.jupiter:junit-jupiter-engine:${junit5Version}"
+    testCompile "com.h2database:h2:${h2Version}"
+    testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
+    testCompile "org.springframework.boot:spring-boot-test-autoconfigure:${springBootVersion}"
+    testCompile "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+
+    compileOnly "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${hibernateJpa21Version}"
+}
+
+test {
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        showStandardStreams = true
+    }
+
+    reports {
+        html.enabled = true
+    }
+}
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.9'
+}
+
+artifacts {
+    archives jar
+}
+
+apply from: 'gradle/publish-maven.gradle'
