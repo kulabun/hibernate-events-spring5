@@ -2,7 +2,6 @@ package org.labun.hibernate.events;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EntityManager;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -20,6 +19,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
@@ -30,24 +30,31 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @ExtendWith(SpringExtension.class)
 @EntityScan(basePackageClasses = UpdateEventListenersTest.class)
 @Transactional
+@TestPropertySource(properties = "logging.level.org.hibernate.SQL=debug")
 public class UpdateEventListenersTest {
 
   @Autowired
-  private EntityManager em;
+  private TransactionExecutor transactionExecutor;
 
   @Test
   public void shouldCallAfterUpdate() {
-    Dog p = new Dog("Hello", 5);
-    em.persist(p);
-    em.flush();
+    transactionExecutor.run(() -> {
+      Dog p1 = new Dog("Dog1", 2);
+      SessionManager.getSession().persist(p1);
+      Dog p2 = new Dog("Dog2", 3);
+      SessionManager.getSession().persist(p2);
+    });
 
-    p.setName("Marry");
-    em.merge(p);
-    em.flush();
-    Assertions.assertEquals("Hulk", p.getName());
+    transactionExecutor.run(() -> {
+      Dog p1 = SessionManager.getSession().find(Dog.class, 1L);
+      p1.setName("Marry");
+      SessionManager.getSession().merge(p1);
+    });
 
-    em.refresh(p);
-    Assertions.assertEquals("Marry", p.getName());
+    transactionExecutor.run(() -> {
+      Assertions.assertEquals("Marry", SessionManager.getSession().find(Dog.class, 1L).getName());
+      Assertions.assertEquals("Hulk", SessionManager.getSession().find(Dog.class, 2L).getName());
+    });
   }
 
   @Configuration
@@ -58,7 +65,9 @@ public class UpdateEventListenersTest {
       return new OnEventListener<Dog>() {
         @Override
         public void onUpdate(OnUpdateEntityEvent<Dog> event) {
-          event.entity().setName("Hulk");
+          Dog d2 = SessionManager.getSession().find(Dog.class, 2L);
+          d2.setName("Hulk");
+          SessionManager.getSession().merge(d2);
         }
 
         @Override
@@ -67,11 +76,16 @@ public class UpdateEventListenersTest {
         }
       };
     }
+
+    @Bean
+    public TransactionExecutor transactionExecutor() {
+      return new TransactionExecutor();
+    }
   }
 
   @Entity
   @Table(name = "dog")
-  public class Dog {
+  public static class Dog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -80,6 +94,9 @@ public class UpdateEventListenersTest {
     private String name;
     @Column
     private int age;
+
+    public Dog() {
+    }
 
     public Dog(String name, int age) {
       this.name = name;

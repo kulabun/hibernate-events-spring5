@@ -17,11 +17,8 @@ public class EventListenerIntegrator implements Integrator {
       SessionFactoryServiceRegistry serviceRegistry) {
     EventListenerRegistry registry = serviceRegistry.getService(EventListenerRegistry.class);
     EventListenerService eventListenerService = getEventListenerService();
-    registry.appendListeners(EventType.PRE_INSERT, eventListenerService);
     registry.appendListeners(EventType.POST_INSERT, eventListenerService);
-    registry.appendListeners(EventType.PRE_UPDATE, eventListenerService);
     registry.appendListeners(EventType.POST_UPDATE, eventListenerService);
-    registry.appendListeners(EventType.PRE_DELETE, eventListenerService);
     registry.appendListeners(EventType.POST_DELETE, eventListenerService);
   }
 

@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * @author Konstantin Labun
  */
-public class Services {
+class Services {
 
   private static Map<Class, Object> cache = new HashMap<>();
 

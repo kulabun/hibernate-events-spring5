@@ -39,6 +39,8 @@ repositories {
 dependencies {
     compile 'org.hibernate:hibernate-core:5.3.3.Final'
     compileOnly "org.springframework.boot:spring-boot-autoconfigure:${springBootVersion}"
+    compile "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
+    compile 'org.hibernate:hibernate-envers:5.3.3.Final'
 
     testCompile "org.junit.jupiter:junit-jupiter-api:${junit5Version}"
     testCompile "org.junit.platform:junit-platform-launcher:${junit5PlatformVersion}"
@@ -46,7 +48,6 @@ dependencies {
     testCompile "com.h2database:h2:${h2Version}"
     testCompile "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
     testCompile "org.springframework.boot:spring-boot-test-autoconfigure:${springBootVersion}"
-    testCompile "org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}"
 
     compileOnly "org.hibernate.javax.persistence:hibernate-jpa-2.1-api:${hibernateJpa21Version}"
 }
